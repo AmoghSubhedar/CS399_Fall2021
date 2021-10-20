@@ -24,6 +24,13 @@
             "name": "Bar Chart Proj5",
             "url": "http://localhost:8000/bar_chart_proj5/index.html",
             "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Line Graph Proj5",
+            "url": "http://localhost:8000/linegraph/index.html",
+            "webRoot": "${workspaceFolder}"
         }
     ]
 }
