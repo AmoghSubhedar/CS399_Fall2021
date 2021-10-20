@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Static Vis",
+            "url": "http://localhost:8000/static_vis/index.html",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Dynamic Vis",
+            "url": "http://localhost:8000/dynamic_vis/index.html",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Bar Chart Proj5",
+            "url": "http://localhost:8000/bar_chart_proj5/index.html",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}

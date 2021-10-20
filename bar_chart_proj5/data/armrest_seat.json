@@ -1,0 +1,35 @@
+[
+	
+	{
+		"age": "60+",
+		"window_and_aisle": "1",
+		"other": "14",
+		"whoever_first": "7",
+		"middle_seat": "27",
+		"shared": "166"
+	},
+	{
+		"age": "45-60",
+		"window_and_aisle": "3",
+		"other": "24",
+		"whoever_first": "12",
+		"middle_seat": "36",
+		"shared": "159"
+	},	
+	{
+		"age": "30-44",
+		"window_and_aisle": "6",
+		"other": "24",
+		"whoever_first": "14",
+		"middle_seat": "28",
+		"shared": "150"
+	},
+	{
+		"age": "18-29",
+		"window_and_aisle": "7",
+		"other": "23",
+		"whoever_first": "12",
+		"middle_seat": "26",
+		"shared": "104"
+	}
+]
