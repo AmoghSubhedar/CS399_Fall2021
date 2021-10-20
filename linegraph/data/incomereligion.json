@@ -1,0 +1,42 @@
+[
+	{
+		"income": "0",
+		"attendance": "0.4107"
+	},
+  {
+		"income": "9999",
+		"attendance": "0.4923"
+	},
+  {
+		"income": "24999",
+		"attendance": "0.4087"
+	},
+  {
+		"income": "49999",
+		"attendance": "0.4577"
+	},
+	{
+		"income": "74999",
+		"attendance": "0.3804"
+	},
+  {
+		"income": "99999",
+		"attendance": "0.3544"
+	},
+	{
+		"income": "124999",
+		"attendance": "0.4271"
+	},
+  {
+		"income": "149999",
+		"attendance": "0.4394"
+	},
+	{
+		"income": "174999",
+		"attendance": "0.2500"
+	},
+  {
+		"income": "199999",
+		"attendance": "0.2549"
+	}
+]
