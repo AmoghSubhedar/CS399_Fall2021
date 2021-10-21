@@ -6,11 +6,11 @@ be animated/updated etc. Typically, you will put things here that are not depend
 
 // define margins in pixels. Use these to define total space allotted for this chart, within the chart area.
 // For multiple charts, you can define multiple margin arrays
-var margins = { left:100, right:40, top:50, bottom:150};
+var margins = { left:80, right:80, top:60, bottom:170};
 
 //define chart sizes
-var width = 600 - margins.left - margins.right;
-var height = 400 - margins.top - margins.bottom;
+var width = 900 - margins.left - margins.right;
+var height = 500 - margins.top - margins.bottom;
 
 //grab entire body
 //d3.select() grabs html objects and can modify them. Here you are designating a block of space
@@ -42,8 +42,7 @@ g.append("text")
 .attr("y", -40)
 //characteristics
 .attr("font-size", "14px")
-.attr("text-anchor", "middle")
-.text("Attendance Rate for Religious Services vs Annual Income");
+.attr("text-anchor", "middle");
 
 //define y axis-label
 g.append("text")
