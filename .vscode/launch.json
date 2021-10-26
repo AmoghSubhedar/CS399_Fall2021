@@ -7,6 +7,13 @@
         {
             "type": "pwa-chrome",
             "request": "launch",
+            "name": "Blowup Game",
+            "url": "http://localhost:8000/blowup_game/index.html",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
             "name": "Static Vis",
             "url": "http://localhost:8000/static_vis/index.html",
             "webRoot": "${workspaceFolder}"
