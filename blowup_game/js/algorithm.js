@@ -7,10 +7,30 @@ var percentOfBetToBlowup;
 var binNumber;
 var kernelEp;
 
+const capital;
 
 function updateSimulation()
 {
     console.log("Updating the simulation, please be patient...");
+    for (let i = 0; i < numSims; ++i)
+    {
+      var money = 100.0;
+      for(let j = 0; j < numTrials; ++j)
+      {
+        var betAmount = percentToBet * money;
+        if(math.Random() > chanceOfBlowup)
+          money += winMultiplier * betAmount - betAmount;
+        else
+          money -= betAmount * percentOfBetToBlowup;
+        if(money < 0)
+        {
+          money = 0;
+          break;
+        }
+      }
+      console.log(money);
+      capital.push(money);
+    }
 }
 
 // Function to compute density
