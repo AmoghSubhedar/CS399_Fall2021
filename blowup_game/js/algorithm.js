@@ -17,11 +17,11 @@ function updateSimulation()
       var money = 100.0;
       for(let j = 0; j < numTrials; ++j)
       {
-        var betAmount = percentToBet * money;
-        if(math.Random() > chanceOfBlowup)
+        var betAmount = (percentToBet / 100) * money;
+        if(Math.random() > (chanceOfBlowup / 100))
           money += winMultiplier * betAmount - betAmount;
         else
-          money -= betAmount * percentOfBetToBlowup;
+          money -= betAmount * (percentOfBetToBlowup / 100);
         if(money < 0)
         {
           money = 0;
