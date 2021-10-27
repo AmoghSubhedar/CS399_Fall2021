@@ -7,7 +7,7 @@ var percentOfBetToBlowup;
 var binNumber;
 var kernelEp;
 
-const capital;
+var capital = [];
 
 function updateSimulation()
 {
