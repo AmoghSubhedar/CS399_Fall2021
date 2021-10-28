@@ -179,13 +179,16 @@ function updateChart() {
 
 // And apply this function to data to get the bins
 var bins = histogram(capital);
+
+// Jitter width
+var JitterXWidth = ((xMax + 600) / width) * 5;
 // Jittering the points
 var points = [];
 for(let i = 0; i < bins.length; ++i)
 {
   for(let j = 0; j < bins[i].length; ++j)
   {
-    points.push([bins[i][j] + (Math.random() * (10) - 5), Math.random() * yMax]);
+    points.push([bins[i][j] + (Math.random() * (2 * JitterXWidth) - JitterXWidth), Math.random() * yMax]);
   } 
 }
 
