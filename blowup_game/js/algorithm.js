@@ -51,6 +51,7 @@ function kernelEpanechnikov(k)
     };
 }
 
+var hasRunOnce = false;
 
 function loadValuesFromForm()
 {
@@ -66,6 +67,14 @@ function loadValuesFromForm()
 
     updateSimulation();
     updateChart();
+
+    // Look, you kinda have to run that twice the first time
+    // I dont know man, it just works
+    if(!hasRunOnce)
+    {
+      updateChart();
+      hasRunOnce = true;
+    }
 }
 
 
@@ -75,13 +84,14 @@ visualization that determines if a variable/svg/axis/etc. should remain in the g
 be animated/updated etc. Typically, you will put things here that are not dependent on the data.
  */
 
+
 // define margins in pixels. Use these to define total space allotted for this chart, within the chart area.
 // For multiple charts, you can define multiple margin arrays
-var margins = { left:100, right:40, top:50, bottom:150};
+var margins = { left:50, right:40, top:50, bottom:50};
 
 //define chart sizes
 var width = 1100 - margins.left - margins.right;
-var height = 500 - margins.top - margins.bottom;
+var height = 400 - margins.top - margins.bottom;
 
 //grab entire body
 //d3.select() grabs html objects and can modify them. Here you are designating a block of space
@@ -93,29 +103,6 @@ var g = d3.select("#chart-area")
     //define the chart location
     .append("g")
     .attr("transform", "translate(" + margins.left + ", " + margins.top  + ")");
-
-//define x axis-label
-g.append("text")
-    .attr("class", "x axis-label")
-    //position
-    .attr("x", width / 2) //centered
-    .attr("y", height + (margins.bottom / 2))
-    //characteristics
-    .attr("font-size", "12px")
-    .attr("text-anchor", "middle")
-    .text("Month");
-
-//define y axis-label
-g.append("text")
-    .attr("class", "y axis-label")
-    //position
-    .attr("x", -height / 2)
-    .attr("y", -60)
-    //characteristics
-    .attr("fons-size", "12px")
-    .attr("text-anchor", "middle")
-    .attr("transform", "rotate(-90)")
-    .text("Profit");
 
 
     var xAxisGroup = g.append("g")
