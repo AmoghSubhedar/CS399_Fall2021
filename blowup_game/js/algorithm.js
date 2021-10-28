@@ -11,6 +11,7 @@ var capital = [];
 
 function updateSimulation()
 {
+    capital = [];
     console.log("Updating the simulation, please be patient...");
     for (let i = 0; i < numSims; ++i)
     {
@@ -28,8 +29,8 @@ function updateSimulation()
           break;
         }
       }
-      console.log(money);
-      capital.push(money);
+      //console.log(money);
+      capital.push(Math.floor(money));
     }
 }
 
@@ -50,6 +51,7 @@ function kernelEpanechnikov(k)
     };
 }
 
+
 function loadValuesFromForm()
 {
     numSims = document.getElementById("numSimsFromGUI").value;
@@ -61,5 +63,160 @@ function loadValuesFromForm()
     binNumber = document.getElementById("binNumberFromGUI").value;
     kernelEp = document.getElementById("kernelEpFromGUI").value;
 
+
     updateSimulation();
+    updateChart();
+}
+
+
+//============================GLOBALS============================
+/* you should define anything up here that stays static throughout your visualization. It is the design of your
+visualization that determines if a variable/svg/axis/etc. should remain in the global space or should
+be animated/updated etc. Typically, you will put things here that are not dependent on the data.
+ */
+
+// define margins in pixels. Use these to define total space allotted for this chart, within the chart area.
+// For multiple charts, you can define multiple margin arrays
+var margins = { left:100, right:40, top:50, bottom:150};
+
+//define chart sizes
+var width = 1100 - margins.left - margins.right;
+var height = 500 - margins.top - margins.bottom;
+
+//grab entire body
+//d3.select() grabs html objects and can modify them. Here you are designating a block of space
+var g = d3.select("#chart-area")
+//define the block size
+    .append("svg")
+    .attr("width", width + margins.left + margins.right)
+    .attr("height", height + margins.top + margins.bottom)
+    //define the chart location
+    .append("g")
+    .attr("transform", "translate(" + margins.left + ", " + margins.top  + ")");
+
+//define x axis-label
+g.append("text")
+    .attr("class", "x axis-label")
+    //position
+    .attr("x", width / 2) //centered
+    .attr("y", height + (margins.bottom / 2))
+    //characteristics
+    .attr("font-size", "12px")
+    .attr("text-anchor", "middle")
+    .text("Month");
+
+//define y axis-label
+g.append("text")
+    .attr("class", "y axis-label")
+    //position
+    .attr("x", -height / 2)
+    .attr("y", -60)
+    //characteristics
+    .attr("fons-size", "12px")
+    .attr("text-anchor", "middle")
+    .attr("transform", "rotate(-90)")
+    .text("Profit");
+
+
+    var xAxisGroup = g.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height +")");
+
+var yAxisGroup = g.append("g")
+    .attr("class", "y axis");
+
+
+    // Y Scale
+var y = d3.scaleLinear()
+.range([height, 0]);
+
+// X Scale
+var x = d3.scaleLinear()
+.range([0, width]);
+
+
+function updateChart() {
+  console.log("Updating chart");
+
+  g.selectAll("path").remove();
+
+  //x.domain([0, d3.max(data, function(d) { return d[value] })]);
+  //y.domain([0, d3.max(data, function(d) { return d[value] })]);
+
+  // X Axis
+  var xAxisCall = d3.axisBottom(x)
+   .tickFormat(function(d){ return "$" + d; });
+  xAxisGroup.call(xAxisCall);
+
+  // Y Axis
+  var yAxisCall = d3.axisLeft(y);
+  yAxisGroup.call(yAxisCall);
+
+  var xMax = d3.max(capital, function(d){ return d; });
+
+  //revisit scales and axes
+  x.domain([-100, xMax + 500]);
+
+  // Draw density curve
+  var kde = kernelDensityEstimator(kernelEpanechnikov(kernelEp), x.ticks(binNumber));
+  var density =  kde(capital);
+
+
+  var yMax = d3.max(density, function(d){ return d[1] });
+  //y.domain([0, yMax]);
+
+  y.domain([0, yMax]);
+  
+
+  g.append("path")
+  .attr("class", "linepath")
+  .datum(density)
+  .attr("fill", "#D6E4E4")
+  .attr("opacity", ".8")
+  .attr("stroke", "#000")
+  .attr("stroke-width", 1)
+  .attr("stroke-linejoin", "round")
+  .attr("d",  d3.line()
+    .curve(d3.curveBasis)
+      .x(function(d) { return x(d[0]); })
+      .y(function(d) { return y(d[1]); })
+  );
+
+
+  // Get bins via histogram
+
+  var histogram = d3.histogram()
+  .value(function(d) { return d; })   // I need to give the vector of value
+  .domain(x.domain())  // then the domain of the graphic
+  .thresholds(x.ticks(binNumber)); // then the numbers of bins
+
+// And apply this function to data to get the bins
+var bins = histogram(capital);
+// Jittering the points
+var points = [];
+for(let i = 0; i < bins.length; ++i)
+{
+  for(let j = 0; j < bins[i].length; ++j)
+  {
+    points.push([bins[i][j] + (Math.random() * (10) - 5), Math.random() * yMax]);
+  } 
+}
+
+g.selectAll("circle").remove();
+
+
+g.append('g')
+.selectAll("dot")
+.data(points)
+.enter()
+.append("circle")
+  .attr("cx", function (d) { return x(d[0]); } )
+  .attr("cy", function (d) { return y(d[1]); } )
+  .attr("r", 1.5)
+  .style("fill", "#000000")
+  .style("opacity", "0.2")
+
+
+  //yLabel.text("Revenue");
+
 }
