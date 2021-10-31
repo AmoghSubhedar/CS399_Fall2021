@@ -47,7 +47,10 @@ function kernelDensityEstimator(kernel, X)
 function kernelEpanechnikov(k) 
 {
     return function(v) {
-      return Math.abs(v /= k) <= 1 ? 0.75 * (1 - v * v) / k : 0;
+      //return Math.abs(v /= k) <= 1 ? 0.75 * (1 - v * v) / k : 0;
+      var result = v /= k;
+      var test_val = Math.abs(result) <= 1.0;
+      return test_val ? 0.75 * (1 - v * v) / k : 0;
     };
 }
 
@@ -145,8 +148,30 @@ function updateChart() {
   x.domain([-100, xMax + 500]);
 
   // Draw density curve
-  var kde = kernelDensityEstimator(kernelEpanechnikov(kernelEp), x.ticks(binNumber));
+  var xTicks = x.ticks(binNumber);
+  var kde = kernelDensityEstimator(kernelEpanechnikov(kernelEp), xTicks);
   var density =  kde(capital);
+
+  // Something is real scuffed about the kde functions
+
+    // Get bins via histogram
+    var histogram = d3.histogram()
+    .value(function(d) { return d; })   // I need to give the vector of value
+    .domain(x.domain())  // then the domain of the graphic
+    .thresholds(x.ticks(binNumber)); // then the numbers of bins
+  
+  // And apply this function to data to get the bins
+  var bins = histogram(capital);
+
+  /*
+var total_count = capital.length;
+var density = [];
+for(let i = 0; i < bins.length; ++i)
+{
+  var fraction_of_total = bins[i].length / total_count;
+  density.push([(bins[i].x0 + bins[i].x1) / 2, fraction_of_total]);
+}
+*/
 
 
   var yMax = d3.max(density, function(d){ return d[1] });
@@ -170,15 +195,7 @@ function updateChart() {
   );
 
 
-  // Get bins via histogram
 
-  var histogram = d3.histogram()
-  .value(function(d) { return d; })   // I need to give the vector of value
-  .domain(x.domain())  // then the domain of the graphic
-  .thresholds(x.ticks(binNumber)); // then the numbers of bins
-
-// And apply this function to data to get the bins
-var bins = histogram(capital);
 
 // Jitter width
 var JitterXWidth = ((xMax + 600) / width) * 5;
