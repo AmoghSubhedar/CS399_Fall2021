@@ -56,6 +56,9 @@ function kernelEpanechnikov(k)
 
 var hasRunOnce = false;
 
+var ran_once = false;
+var curve;
+
 function loadValuesFromForm()
 {
     numSims = document.getElementById("numSimsFromGUI").value;
@@ -75,7 +78,7 @@ function loadValuesFromForm()
     // I dont know man, it just works
     if(!hasRunOnce)
     {
-      updateChart();
+      //updateChart();
       hasRunOnce = true;
     }
 }
@@ -128,7 +131,7 @@ var x = d3.scaleLinear()
 function updateChart() {
   console.log("Updating chart");
 
-  g.selectAll("path").remove();
+  //g.selectAll("path").remove();
 
   //x.domain([0, d3.max(data, function(d) { return d[value] })]);
   //y.domain([0, d3.max(data, function(d) { return d[value] })]);
@@ -180,21 +183,39 @@ for(let i = 0; i < bins.length; ++i)
   y.domain([0, yMax]);
   
 
-  g.append("path")
-  .attr("class", "linepath")
-  .datum(density)
-  .attr("fill", "#D6E4E4")
-  .attr("opacity", ".8")
-  .attr("stroke", "#000")
-  .attr("stroke-width", 1)
-  .attr("stroke-linejoin", "round")
-  .attr("d",  d3.line()
-    .curve(d3.curveBasis)
-      .x(function(d) { return x(d[0]); })
-      .y(function(d) { return y(d[1]); })
-  );
 
+  if(!ran_once)
+  {
 
+    
+    ran_once = true;
+
+    curve = g.append("path")
+    .attr("class", "linepath")
+    .datum(density)
+    .attr("fill", "#D6E4E4")
+    .attr("opacity", ".8")
+    .attr("stroke", "#000")
+    .attr("stroke-width", 1)
+    .attr("stroke-linejoin", "round")
+    .attr("d",  d3.line()
+      .curve(d3.curveBasis)
+        .x(function(d) { return x(d[0]); })
+        .y(function(d) { return y(d[1]); })
+    );
+    
+  }
+  else
+  {
+    curve.datum(density)
+    .transition()
+    .duration(500)
+    .attr("d",  d3.line()
+      .curve(d3.curveBasis)
+        .x(function(d) { return x(d[0]); })
+        .y(function(d) { return y(d[1]); })
+    );
+  }
 
 
 // Jitter width
