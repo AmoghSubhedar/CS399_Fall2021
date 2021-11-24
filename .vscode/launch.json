@@ -38,6 +38,13 @@
             "name": "Line Graph Proj5",
             "url": "http://localhost:8000/linegraph/index.html",
             "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Final Project",
+            "url": "http://localhost:8000/final/index.html",
+            "webRoot": "${workspaceFolder}"
         }
     ]
 }
