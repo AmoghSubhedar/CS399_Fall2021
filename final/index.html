@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <!-- Custom styling -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 </head>
 
 <body>
@@ -32,6 +33,18 @@
 <!-- Custom JS -->
 <script src="js/main.js"></script>
 
+<div style="text-align:center;">
+
+    <input type="checkbox" id="enableTopValues" name="enableTopValues" checked onclick="enableTopValues(this.checked)">
+    <label for="enableTopValues">Display only the top </label>
+
+    <input type="number" value=6 id="topValsCount" style=" width: 50px;" onkeyup="changeTopValues(this.value)"  oninput="changeTopValues(this.value)">
+
+    <label for="enableTopValues"> values</label>
+    <br>
+    <input type="radio" id="rStacked" name="graphConfig" value="stacked" checked onclick="changeStacking(true)"> Stacked Graph<br>
+    <input type="radio" id="rSeperate" name="graphConfig" value="seperate" onclick="changeStacking(false)"> Seperate Graphs<br>
+</div>
 </body>
 </html>
 

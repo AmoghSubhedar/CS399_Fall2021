@@ -1,8 +1,14 @@
+// oh god oh man i dont know javascript/css
+// this is the messiest code ive ever written
+// im so sorry
+
 //============================GLOBALS============================
 /* you should define anything up here that stays static throughout your visualization. It is the design of your
 visualization that determines if a variable/svg/axis/etc. should remain in the global space or should
 be animated/updated etc. Typically, you will put things here that are not dependent on the data.
  */
+
+
 
 // define margins in pixels. Use these to define total space allotted for this chart, within the chart area.
 // For multiple charts, you can define multiple margin arrays
@@ -31,6 +37,15 @@ var maxIndividualY;
 
 var coloring;
 
+var totalSamples = 0;
+
+var cropDataSet = true;
+var cropDataSetByTop = 3;
+var completeKeySet;
+
+var s_data;
+var totals;
+
 //grab entire body
 //d3.select() grabs html objects and can modify them. Here you are designating a block of space
 var g = d3.select("#chart-area")
@@ -43,13 +58,9 @@ var g = d3.select("#chart-area")
     .attr("transform", "translate(" + margins.left + ", " + margins.top  + ")");
 
 
-var xAxisGroup = g.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(" + time_graph_offset + "," + height / 2 +")");
+var xAxisGroup;
 
-var yAxisGroup = g.append("g")
-    .attr("class", "y axis")
-    .attr("transform", "translate(" + time_graph_offset + ", 0)");
+var yAxisGroup;
 
 /* We begin the definition of the scales here because these attributes
 are not dependent on the live data. We will modify onlt the necessary attributes
@@ -73,11 +84,11 @@ var yLabel;
     var gfill;
 
 // Transitions to individual graphs
-var currentlyStacked = false;
+var currentlyStacked = true;
 var tempAxes;
-function triggerTransition(){
+function triggerTransition(time_duration){
 
-    currentlyStacked = !currentlyStacked;
+    //currentlyStacked = !currentlyStacked;
 
     var yIndividualHeight = height * (1 / keys.length);
 
@@ -89,15 +100,15 @@ function triggerTransition(){
     // Animate label movements
     if(currentlyStacked)
     {
-        xLabel.transition().duration(1000).attr("y", (height / 2) + 50);
+        xLabel.transition().duration(time_duration).attr("y", (height / 2) + 50);
 
-        yLabel.transition().duration(1000).attr("x", -(height / 4));
+        yLabel.transition().duration(time_duration).attr("x", -(height / 4));
     }
     else
     {
-        xLabel.transition().duration(1000).attr("y", (height) + 50);
+        xLabel.transition().duration(time_duration).attr("y", (height) + 50);
 
-        yLabel.transition().duration(1000).attr("x", -(height / 2));
+        yLabel.transition().duration(time_duration).attr("x", -(height / 2));
     }
 
 
@@ -111,17 +122,17 @@ function triggerTransition(){
         y.domain([0, maxStackedY * 1.1]);
 
         //var yAxisCall = d3.axisLeft(y);
-        yAxisGroup.transition().duration(1000).call(d3.axisLeft(y).ticks(4)).attr("transform", "translate( " + time_graph_offset + ", 0)");
+        yAxisGroup.transition().duration(time_duration).call(d3.axisLeft(y).ticks(6)).attr("transform", "translate( " + time_graph_offset + ", 0)");
 
-        d3.selectAll(".temp_y").transition().duration(1000).call(d3.axisLeft(y).ticks(4)).attr("transform", "translate( " + time_graph_offset + ", 0 )").remove();
+        d3.selectAll(".temp_y").transition().duration(time_duration).call(d3.axisLeft(y).ticks(6)).attr("transform", "translate( " + time_graph_offset + ", 0 )").remove();
 
-        xAxisGroup.transition().duration(1000).call(d3.axisBottom(x).ticks(5)).attr("transform", "translate(" + time_graph_offset + "," + height / 2 +")");
+        xAxisGroup.transition().duration(time_duration).call(d3.axisBottom(x).ticks(5)).attr("transform", "translate(" + time_graph_offset + "," + height / 2 +")");
 
     }
     else
     {
 
-        xAxisGroup.transition().duration(1000).call(d3.axisBottom(x).ticks(5)).attr("transform", "translate(" + time_graph_offset + "," + height +")");
+        xAxisGroup.transition().duration(time_duration).call(d3.axisBottom(x).ticks(5)).attr("transform", "translate(" + time_graph_offset + "," + height +")");
 
         d3.selectAll("temp_y axis").remove();
 
@@ -131,24 +142,24 @@ function triggerTransition(){
         y.domain([0, maxIndividualY * 1.1]);
 
         //var yAxisCall = d3.axisLeft(y);
-        yAxisGroup.transition().duration(1000).call(d3.axisLeft(y).ticks(4)).attr("transform", "translate( " + time_graph_offset + ", " + yIndividualHeightTopMargin +" )");
+        yAxisGroup.transition().duration(time_duration).call(d3.axisLeft(y).ticks(1)).attr("transform", "translate( " + time_graph_offset + ", " + yIndividualHeightTopMargin +" )");
 
         for(let i = 1; i < keys.length; ++i)
         {
             var y_temp = d3.scaleLinear().range([height * 0.5, 0]).domain([0, maxStackedY * 1.1]);
 
             var yAxisGroup_temp = g.append("g").attr("class", "temp_y temp_y" + i + " axis").attr("transform", "translate( " + time_graph_offset + ", 0)");
-            yAxisGroup_temp.transition().duration(1000).call(d3.axisLeft(y_temp).ticks(4));
+            yAxisGroup_temp.transition().duration(time_duration).call(d3.axisLeft(y_temp).ticks(6));
 
             var y_temp1 = d3.scaleLinear().range([yIndividualHeightInside, 0]).domain([0, maxIndividualY * 1.1]);
 
-            yAxisGroup_temp.transition().duration(1000).call(d3.axisLeft(y_temp1).ticks(4));
+            yAxisGroup_temp.transition().duration(time_duration).call(d3.axisLeft(y_temp1).ticks(1));
 
             var transitionY = (yIndividualHeight * i) + yIndividualHeightTopMargin;
 
             d3.select(".temp_y" + i)
             .transition()
-            .duration(1000)
+            .duration(time_duration)
             .attr("transform", "translate( " + time_graph_offset + ", " + transitionY +" )");
             //tempAxes
             //.attr("transform", "translate( " + width + ", 0 )")
@@ -165,7 +176,7 @@ function triggerTransition(){
     gfill
       .data(currentlyStacked ? stackedData : seperatedStacks)
       .transition()
-      .duration(1000)
+      .duration(time_duration)
       //.style("fill", function(d) { console.log(d.key) ; return color(d.key); })
       .attr("d", d3.area()
         .x(function(d, i) { return x(d.data.timestamp); })
@@ -176,16 +187,116 @@ function triggerTransition(){
         return "translate( " + time_graph_offset + ", " + transitionY + ")"});
   }
 
+
+  var Tooltip = d3.select("#chart-area").append("div")
+  .append("div")
+  .style("opacity", 0)
+  .attr("class", "tooltip")
+  .style("background-color", "white")
+  .style("border", "solid")
+  .style("border-width", "2px")
+  .style("border-radius", "5px")
+  .style("padding", "5px")
+  .style("pointer-events", "none")
+  .style("vertical-align", "bottom")
+
+  var mouseover = function(d) {
+    Tooltip
+      .style("opacity", 1)
+    d3.select(this)
+      .style("stroke", "black")
+      .style("opacity", 1)
+  }
+
+  var mousemove = function(d) {
+   Tooltip
+  .html(d.data.name + ":<br>Samples: " + d.value + "<br>" + d3.format(".2%")(d.value / totalSamples))
+  .style("top", function(d) { if(d3.event.pageY) {prevY = d3.event.pageY;} return (prevY -  d3.select('.tooltip').node().getBoundingClientRect().height) + "px"; })
+  .style("left", function(d) { if(d3.event.pageX) {prevX = d3.event.pageX;} return prevX + "px"; })
+  }
+  var mouseleave = function(d) {
+    Tooltip
+      .style("opacity", 0)
+    d3.select(this)
+      .style("stroke", "none")
+      .style("opacity", 0.8)
+  }
+
+
+  var TooltipGraph = d3.select("#chart-area").append("div")
+  .append("div")
+  .style("opacity", 0)
+  .attr("class", "tooltip tooltipG")
+  .style("background-color", "white")
+  .style("border", "solid")
+  .style("border-width", "2px")
+  .style("border-radius", "5px")
+  .style("padding", "5px")
+  .style("pointer-events", "none")
+  .style("vertical-align", "bottom")
+
+  var mouseoverGraph = function(d) {
+    TooltipGraph
+      .style("opacity", 1)
+  }
+
+  var mousemoveGraph = function(d) {
+
+    var selection = d3.select(this);
+    var m = d3.mouse(selection.node());
+    var domRect = document.getElementById("chart-area").getBoundingClientRect();
+
+    var correctedXPos = m[0];// + domRect.left;
+
+    var xValue = x.invert(correctedXPos);
+
+    const bisectorData = d3.bisector(function(d) {
+        return d.data.timestamp;
+      }).left;
+    const xIndex = bisectorData(d, xValue, 1);
+    //const mouseYValue = data[xIndex].population;
+
+      // INDEX IS MAYBE RIGHT
+      // CONT USING https://observablehq.com/@elishaterada/simple-area-chart-with-tooltip
+      // TO IMPLEMENT A TOOLTIP
+      // THEN FIX THE COLORS AND SHIP IT
+
+   TooltipGraph
+  //.html(d.data.name + ":<br>Samples: " + d.value + "<br>" + d3.format(".2%")(d.value / totalSamples))
+  .html(function(d) {
+    if(d3.event.pageX) {prevX = d3.event.pageX;}
+
+    
+    
+    return "test";})
+  .style("top", function(d) { if(d3.event.pageY) {prevY = d3.event.pageY;} return (prevY -  d3.select('.tooltipG').node().getBoundingClientRect().height) + "px"; })
+  .style("left", function(d) { if(d3.event.pageX) {prevX = d3.event.pageX;} return (m[0] + time_graph_offset + domRect.left) + "px"; })
+  }
+  var mouseleaveGraph = function(d) {
+    TooltipGraph
+      .style("opacity", 0)
+  }
+
+
 //========================Data Loading=======================
 /* Load the raw data file, anything that's local gets worked with within this async function. d3 can handle these
 three file types; csv, tsv, and json.
 IMPORTANT: This call is new to D3 v5. You may need to modify code that you take from the internet for compatibility */
+
+var prevX = 0;
+var prevY = 0;
 
 //d3.csv("data/revenues.csv").then(function(data){
 //d3.tsv("data/revenues.tsv").then(function(data){
 d3.csv("data/data1.csv").then(function(data){
      console.log(data);
 
+     
+
+               // create a tooltip
+
+  
+  //data.columns = data.columns.slice(0, 4);
 
     // Pull module names out of the headers
     keys = data.columns.slice(1);
@@ -203,125 +314,202 @@ d3.csv("data/data1.csv").then(function(data){
         d["timestamp"] = +d["timestamp"];
     });
 
-    var totals = JSON.parse(JSON.stringify(data[data.length - 1]));
-    // Process the data into increments
-    // Stores the number of new readings each increment
-    var incrementData = data;
+    totals = JSON.parse(JSON.stringify(data[data.length - 1]));
 
-    for (let i = data.length - 1; i > 0; i--) {
-        keys.forEach(function(k) {
-            incrementData[i][k] = incrementData[i][k] - incrementData[i - 1][k];
-        });
-    }
-
-
-    stackedData = d3.stack().keys(keys)(data);
-
-    maxStackedY = 0;
-    stackedData[stackedData.length - 1].forEach(function(d) {
-        maxStackedY = Math.max(maxStackedY, d[1]);
-    });
-
-    maxIndividualY = 0;
-    var ymax = maxStackedY;
-
-    stackedData.forEach(function(d) {
-        d.offset = keys.length - 1;
-    });
-
-    // "unstacked" stacks, they overlap
-    // we want to transition to these (with a position offset of the whole chart)
-    // when splitting the stacked areas into individual ones
-    seperatedStacks = JSON.parse(JSON.stringify(stackedData));
-
-    for (let i = 1; i < seperatedStacks.length; i++)
+    var totalsNamesPairs = [];
+    for(let i = 0; i < keys.length; ++i)
     {
-        for (let j = 0; j < seperatedStacks[i].length; j++)
-        {
-            seperatedStacks[i][j][0] -= stackedData[i - 1][j][1];
-            seperatedStacks[i][j][1] -= stackedData[i - 1][j][1];
-        }
+        totalsNamesPairs.push({[keys[i]]: totals[keys[i]]});//[keys[i]] =  totals[keys[i]];//push({keys[i], totals[keys[i]]});
     }
 
-    // Finish the deep copy, cover the stuff not dealt with by the json stringify trick
-    for (let i = 0; i < seperatedStacks.length; i++)
+    totalsNamesPairs.sort(function(a, b) {
+        return a[Object.keys(a)[0]] < b[Object.keys(b)[0]] ? 1 : -1;
+      });
+
+
+          // redo keys with this new sorting
+    for(let i = 0; i < totalsNamesPairs.length; ++i)
     {
-        seperatedStacks[i].key = stackedData[i].key;
-        for (let j = 0; j < seperatedStacks[i].length; j++)
-        {
-            maxIndividualY = Math.max(seperatedStacks[i][j][1], maxIndividualY);
-            seperatedStacks[i][j].data = stackedData[i][j].data;
-        }
-        seperatedStacks[i].offset = (keys.length - 1) - i;
+        keys[i] = Object.keys(totalsNamesPairs[i])[0];
     }
 
-
-    // create area chart
-
-    // Store the totals
-    
-    var totalsTree = {};
-    totalsTree.children = new Array();
-
-    //totalsTree.children.push({value: "", name: "Origin", parent: ""});
-
-    keys.forEach(function(k) {
-        totalsTree.children.push({});
-        totalsTree.children[ totalsTree.children.length - 1].value = totals[k];
-        totalsTree.children[ totalsTree.children.length - 1].name = k;
-    });
-    
-    var root = d3.hierarchy(totalsTree).sum(function(d){ return d.value})
-
-    d3.treemap()
-    .size([width_total , height])
-    .padding(2)
-    (root);
-
-    g
-    .selectAll("rect")
-    .data(root.leaves())
-    .enter()
-    .append("rect")
-      .attr('x', function (d) { return d.x0; })
-      .attr('y', function (d) { return d.y0; })
-      .attr('width', function (d) { return d.x1 - d.x0; })
-      .attr('height', function (d) { return d.y1 - d.y0; })
-      .attr("fill",  function(d){ return coloring(d.data.name)} )
-      .style("stroke", "black")
-      //.style("fill", "#69b3a2");
-
-  // and to add the text labels
-  g
-    .selectAll("text")
-    .data(root.leaves())
-    .enter()
-    .append("text")
-      .attr("x", function(d){ return d.x0+10})    // +10 to adjust position (more right)
-      .attr("y", function(d){ return d.y0+20})    // +20 to adjust position (lower)
-      .text(function(d){ return d.data.name})
-      .attr("font-size", "15px")
-      .attr("fill", "white")
-
-      //return;
-    //what happens at each n milliseconds interval.
-    //This is basically our automatic update loop. Use it for time-based automated tasks.
-    // This sets up d3 behind the scenes.
-    // is not run on the first frame.
-    
-    d3.interval(function(){
-        //var newData = showingStackedArea ? data : data.slice(1);
-
-        triggerTransition();
-        //showingStackedArea = !showingStackedArea
-    }, 3000);
+    // Can be used to draw out the top X keys
+    completeKeySet = keys.slice();
     
 
+    s_data = data;
     // Run the update in the first frame.
-    update(seperatedStacks, ymax);
+    update();
 });
 
-function update(sdata, ymax) {
+function update() {
+
+ xAxisGroup = g.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(" + time_graph_offset + "," + height / 2 +")");
+
+ yAxisGroup = g.append("g")
+    .attr("class", "y axis")
+    .attr("transform", "translate(" + time_graph_offset + ", 0)");
+
+
+
+    // Tooltips for graphs
+
+
+
+// Make a fresh copy of the data for manipulation
+var data = JSON.parse(JSON.stringify(s_data));
+data.columns = JSON.parse(JSON.stringify(s_data.columns));
+
+if(cropDataSet)
+{
+    keys = [];
+    data.columns = ["timestamp"];
+    for(let i = 0; i < cropDataSetByTop; ++i)
+    {
+        data.columns.push(completeKeySet[i]);
+        keys.push(completeKeySet[i]);
+    }
+}
+else
+{
+    keys = completeKeySet.slice();
+    data.columns = ["timestamp"];
+    data.columns.push.apply(data.columns, completeKeySet);
+    //data.columns = data.columns.append(completeKeySet);
+}
+
+
+//var sorted_data;
+//sorted_data["columns"][0] = data["columns"][0];
+for (let i = 0; i < keys.length; i++) {
+    data["columns"][1 + i] = keys[i];
+}
+
+
+// Process the data into increments
+// Stores the number of new readings each increment
+var incrementData = data;
+
+for (let i = data.length - 1; i > 0; i--) {
+    keys.forEach(function(k) {
+        incrementData[i][k] = incrementData[i][k] - incrementData[i - 1][k];
+    });
+}
+
+keys = keys.reverse();
+stackedData = d3.stack().keys(keys)(data);
+
+//stackedData;
+
+
+
+maxStackedY = 0;
+stackedData[stackedData.length - 1].forEach(function(d) {
+    maxStackedY = Math.max(maxStackedY, d[1]);
+});
+
+maxIndividualY = 0;
+//var ymax = maxStackedY;
+
+stackedData.forEach(function(d) {
+    d.offset =  (stackedData.length - 1);
+});
+
+// "unstacked" stacks, they overlap
+// we want to transition to these (with a position offset of the whole chart)
+// when splitting the stacked areas into individual ones
+seperatedStacks = JSON.parse(JSON.stringify(stackedData));
+
+for (let i = 1; i < seperatedStacks.length; i++)
+{
+    for (let j = 0; j < seperatedStacks[i].length; j++)
+    {
+        seperatedStacks[i][j][0] -= stackedData[i - 1][j][1];
+        seperatedStacks[i][j][1] -= stackedData[i - 1][j][1];
+    }
+}
+
+// Finish the deep copy, cover the stuff not dealt with by the json stringify trick
+for (let i = 0; i < seperatedStacks.length; i++)
+{
+    seperatedStacks[i].key = stackedData[i].key;
+    for (let j = 0; j < seperatedStacks[i].length; j++)
+    {
+        maxIndividualY = Math.max(seperatedStacks[i][j][1], maxIndividualY);
+        seperatedStacks[i][j].data = stackedData[i][j].data;
+    }
+    seperatedStacks[i].offset = (stackedData.length - 1) - i ;
+}
+
+
+// create area chart
+
+// Store the totals
+totalSamples = 0;
+keys.forEach(function(k) {
+    totalSamples += totals[k];
+});
+
+var totalsTree = {};
+totalsTree.children = new Array();
+
+//totalsTree.children.push({value: "", name: "Origin", parent: ""});
+
+keys.forEach(function(k) {
+    totalsTree.children.push({});
+    totalsTree.children[ totalsTree.children.length - 1].value = totals[k];
+    totalsTree.children[ totalsTree.children.length - 1].name = k;
+});
+
+var root = d3.hierarchy(totalsTree).sum(function(d){ return d.value}).sort(function(a,b) {
+    return b.value - a.value;
+})
+
+
+
+
+d3.treemap()
+.round(true)
+.tile(d3.treemapSlice)
+.size([width_total , height])
+.padding(2)
+(root);
+
+g
+.selectAll("rect")
+.data(root.leaves())
+.enter()
+.append("rect")
+  .attr('x', function (d) { return d.x0; })
+  .attr('y', function (d) { return d.y0; })
+  .attr('width', function (d) { return d.x1 - d.x0; })
+  .attr('height', function (d) { return d.y1 - d.y0; })
+  .attr("fill",  function(d){ return coloring(d.data.name)} )
+  .attr("title",  function(d){ return d.data.name} )
+  .style("stroke", "none")
+  .style("opacity", 0.8)
+  .on("mouseover", mouseover)
+  .on("mousemove", mousemove)
+  .on("mouseleave", mouseleave)
+  //.style("fill", "#69b3a2");
+
+//// and to add the text labels
+g
+.selectAll("text")
+.data(root.leaves())
+.enter()
+.append("text")
+  .attr("x", function(d){ return d.x0+10})    // +10 to adjust position (more right)
+  .attr("y", function(d){ return d.y0+20})    // +20 to adjust position (lower)
+  .style("width", function(d) { return d.x1 - d.x0 + "px"; })
+  .style("height", function(d) { return d.y1 - d.y0 + "px"; })
+  .text(function(d){ return d.data.name})
+  .attr("font-size", "15px")
+  .attr("fill", "white")
+.style("pointer-events", "none")
+
 
 // X Label
 xLabel = g.append("text")
@@ -372,8 +560,8 @@ yLabel = g.append("text")
     //var value = showingStackedArea ? d3.max(data, function(d) { return d[value] }) : "profit";
 
     //revisit scales and axes
-    x.domain(d3.extent(sdata[0], function(d) { return d.data.timestamp; }));
-    y.domain([0, maxIndividualY * 1.1]);
+    x.domain(d3.extent(stackedData[0], function(d) { return d.data.timestamp; }));
+    y.domain([0, maxStackedY * 1.1]);
 
     // X Axis
     var xAxisCall = d3.axisBottom(x).ticks(5);
@@ -383,85 +571,94 @@ yLabel = g.append("text")
     var yAxisCall = d3.axisLeft(y);
     yAxisGroup.call(yAxisCall.ticks(4));
 
-  // color palette
-  var color = d3.scaleOrdinal()
-    .domain(keys)
-    .range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf'])
-
     gfill = g.selectAll("mylayers")
-    .data(sdata)
+    .data(stackedData)
     .enter()
     .append("path")
-      .style("fill", function(d) { console.log(d.key) ; return color(d.key); })
+      .style("fill", function(d) { console.log(d.key) ; return coloring(d.key); })
       .attr("d", d3.area()
         .x(function(d, i) { return x(d.data.timestamp); })
         .y0(function(d) { return y(d[0]); })
         .y1(function(d) { return y(d[1]); })
     ).attr("transform", function(d, i) {
-        return "translate( " + time_graph_offset + ", 0)"});
+        return "translate( " + time_graph_offset + ", 0)"}) 
+        .on("mouseover", mouseoverGraph)
+        .on("mousemove", mousemoveGraph)
+        .on("mouseleave", mouseleaveGraph);
 }
 
+function isTransitioning(selection) {
+    var transitioning = false;
+    selection.each(function() { if(d3.active(this)) { transitioning = true; } })
+    return transitioning;
+}
+
+function changeTopValues(val) {
+
+    if(val < 1)
+    {
+        val = 1;
+        document.getElementById("topValsCount").value = val;
+    }
+
+    if(val > completeKeySet.length)
+    {
+        val = completeKeySet.length;
+        //document.getElementById("topValsCount").value = val;
+        //return;
+    }
+
+    if(val != cropDataSetByTop)
+    {
+        cropDataSetByTop = val;
+        console.log("Registered top val change " + val);
 
 
-// //similar to our
-// function update(data) {
-//     var label = showingStackedArea ? "Revenue" : "Profit";
-//
-//     //revisit the scales and axes
-//     x.domain(data.map(function(d){ return d.month }));
-//     y.domain([0, d3.max(data, function(d) { return d[value] })]);
-//
-//     // X Axis
-//     var xAxisCall = d3.axisBottom(x);
-//     xAxisGroup.transition(t).call(xAxisCall);
-//
-//     // Y Axis
-//     var yAxisCall = d3.axisLeft(y)
-//         .tickFormat(function(d){ return "$" + d; });
-//     yAxisGroup.transition(t).call(yAxisCall);
-//
-//     /* VERY  IMPORTANT */
-//     /* This is the bread and butter of D3. d3.interval first joins the all html objects with
-//     corresponding data using the ranges and other objects. It then seperaates them into
-//     two lists, depending on whether the objects data reference has an old, same, or new signature
-//     The EXIT list is all old elements that dont have references in the present data set.
-//     The Enter list contains all new entering elements based on new data AS WELL AS old elements with
-//     references in the present data. */
-//
-//     // JOIN new data with old elements. One element for each month.
-//     var rects = g.selectAll("rect")
-//         .data(data, function(d){
-//             return d.month;
-//         });
-//
-//     // EXIT old elements not present in new data.
-//     rects.exit()
-//         .attr("fill", "red")
-//     .transition(t)
-//         .attr("y", y(0))
-//         .attr("height", 0)
-//         .remove();
-//
-//     // ENTER new elements present in new data...
-//     rects.enter()
-//         .append("rect")
-//             .attr("fill", "grey")
-//             .attr("y", y(0))
-//             .attr("height", 0)
-//             .attr("x", function(d){ return x(d.month) })
-//             .attr("width", x.bandwidth)
-//             // AND UPDATE old elements present in new data.
-//             .merge(rects)
-//             .transition(t)
-//                 .attr("x", function(d){ return x(d.month) })
-//                 .attr("width", x.bandwidth)
-//                 .attr("y", function(d){ return y(d[value]); })
-//                 .attr("height", function(d){ return height - y(d[value]); });
-//
-//     //update the label text
-//     var label = showingStackedArea ? "Revenue" : "Profit";
-//     yLabel.text(label);
-//
-// }
+        if(cropDataSet)
+        {
+        d3.selectAll("svg > g > *").remove();
+        update(s_data);
+        triggerTransition(0);
+        }
+    }
+  }
 
+  function enableTopValues(is_enabled) {
 
+    if(is_enabled != cropDataSet)
+    {
+        cropDataSet = is_enabled;
+        console.log("Registered enable top val change " + is_enabled);
+
+        d3.selectAll("svg > g > *").remove();
+        update(s_data);
+        triggerTransition(0);
+    }
+  }
+
+function changeStacking(do_stacking) {
+  if(currentlyStacked != do_stacking)
+  {
+      // Special handling to defeat those fiends who
+      // might try to change the stacking
+      // in the middle of a transition
+      if(!isTransitioning(d3.selectAll(".temp_y")))
+      {
+          console.log("Registered stacking change " + do_stacking);
+          currentlyStacked = do_stacking;
+          triggerTransition(1000);
+      }
+      else
+      {
+          document.getElementById("rStacked").checked = currentlyStacked;
+          document.getElementById("rSeperate").checked = !currentlyStacked;
+      }
+  }
+}
+  
+
+//d3.select("#topvals").on("input", changeTopValues);
+
+//d3.select("#enableTopValues").on("input", enableTopValues);
+
+//g.on('mousemove', mouseTooltipGraph)
