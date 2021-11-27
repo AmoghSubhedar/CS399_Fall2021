@@ -40,11 +40,13 @@ var coloring;
 var totalSamples = 0;
 
 var cropDataSet = true;
-var cropDataSetByTop = 3;
+var cropDataSetByTop = 6;
 var completeKeySet;
 
 var s_data;
 var totals;
+
+var y_chart_offsets = [];
 
 //grab entire body
 //d3.select() grabs html objects and can modify them. Here you are designating a block of space
@@ -83,6 +85,12 @@ var yLabel;
 
     var gfill;
 
+    var yIndividualHeight;
+
+    var yIndividualHeightTopMargin;
+
+    var yIndividualHeightInside;
+
 // Transitions to individual graphs
 var currentlyStacked = true;
 var tempAxes;
@@ -90,11 +98,11 @@ function triggerTransition(time_duration){
 
     //currentlyStacked = !currentlyStacked;
 
-    var yIndividualHeight = height * (1 / keys.length);
+    yIndividualHeight = height * (1 / keys.length);
 
-    var yIndividualHeightTopMargin = yIndividualHeight * 0.2;
+    yIndividualHeightTopMargin = yIndividualHeight * 0.2;
 
-    var yIndividualHeightInside = yIndividualHeight - yIndividualHeightTopMargin;
+    yIndividualHeightInside = yIndividualHeight - yIndividualHeightTopMargin;
 
 
     // Animate label movements
@@ -223,22 +231,14 @@ function triggerTransition(time_duration){
   }
 
 
-  var TooltipGraph = d3.select("#chart-area").append("div")
-  .append("div")
-  .style("opacity", 0)
-  .attr("class", "tooltip tooltipG")
-  .style("background-color", "white")
-  .style("border", "solid")
-  .style("border-width", "2px")
-  .style("border-radius", "5px")
-  .style("padding", "5px")
-  .style("pointer-events", "none")
-  .style("vertical-align", "bottom")
+
 
   var mouseoverGraph = function(d) {
-    TooltipGraph
-      .style("opacity", 1)
+    //g.selectAll('.hoverText').style("opacity", 1);
+    g.selectAll('.hoverLine').style("opacity", 1);
+    g.selectAll('.hoverPoint').style("opacity", 1);
   }
+
 
   var mousemoveGraph = function(d) {
 
@@ -254,6 +254,8 @@ function triggerTransition(time_duration){
         return d.data.timestamp;
       }).left;
     const xIndex = bisectorData(d, xValue, 1);
+
+    const dataElement = d[xIndex]; 
     //const mouseYValue = data[xIndex].population;
 
       // INDEX IS MAYBE RIGHT
@@ -261,20 +263,104 @@ function triggerTransition(time_duration){
       // TO IMPLEMENT A TOOLTIP
       // THEN FIX THE COLORS AND SHIP IT
 
-   TooltipGraph
-  //.html(d.data.name + ":<br>Samples: " + d.value + "<br>" + d3.format(".2%")(d.value / totalSamples))
-  .html(function(d) {
-    if(d3.event.pageX) {prevX = d3.event.pageX;}
+
+      
+    g.selectAll('.clone').remove();
+    var original = g.select(".hoverText");
+
+    var total_y = total_y = stackedData[stackedData.length - 1][xIndex][1];;
+    //for(let i = 0; i < stackedData.length; ++i)
+    //{
+    //    if(stackedData[i].offset == 0)
+    //        total_y = stackedData[i][xIndex][1];
+    //}
+
+    for(let i = 0; i < keys.length; ++i)
+    {
+
+        var hoverTextX = 0;
+        var hoverTextAnchor = 0;
+
+
+        var y_top_pos = 0;
+        var y_value = 0;
+
+        var transitionY = (currentlyStacked ? 0 : y_chart_offsets[keys[i]]) + (currentlyStacked ? 0 : yIndividualHeightTopMargin);
+
+        if(currentlyStacked)
+        {
+            y_top_pos =  y(stackedData[i][xIndex][1]) + transitionY;
+            y_value = stackedData[i][xIndex][1] - stackedData[i][xIndex][0];
+
+            // each alternate the side
+            const isLessThanHalf = (i % 2 == 0);
+            hoverTextX = isLessThanHalf ? '-0.75em' : '0.75em';
+            hoverTextAnchor = isLessThanHalf ? 'end' : 'start';
+        }
+        else
+        {
+            y_top_pos =  y(seperatedStacks[i][xIndex][1]) + transitionY;
+            y_value = seperatedStacks[i][xIndex][1];
+
+            const isLessThanHalf = xIndex > d.length / 2;
+            hoverTextX = isLessThanHalf ? '-0.75em' : '0.75em';
+            hoverTextAnchor = isLessThanHalf ? 'end' : 'start';
+        }
 
     
+
+    original.clone(true).classed('clone', true)
+      .attr('x', x(dataElement.data.timestamp))
+      .attr('y', y_top_pos)
+      .attr('dx', hoverTextX)
+      .attr('dy', '-1.25em')
+      .style('text-anchor', hoverTextAnchor)
+      .style("opacity", 1)
+      .text(d3.format('.5s')(y_value) + ", " + d3.format('.2%')(y_value / total_y) + " " + keys[i])
+      .style("fill", function(d) { return coloring(keys[i]); })
+      .style("stroke", "white")
+      .style("stroke-width", "3px")
+      .style("paint-order", "stroke fill");
+    }
+
+    // One more for totals
+
+    y_top_pos =  0;
+
+    const isLessThanHalf = xIndex > d.length / 2;
+    var hoverTextX = isLessThanHalf ? '-0.75em' : '0.75em';
+    var hoverTextAnchor = isLessThanHalf ? 'end' : 'start';
+
+    original.clone(true).classed('clone', true)
+    .attr('x', x(dataElement.data.timestamp))
+    .attr('y', y_top_pos)
+    .attr('dx', hoverTextX)
+    .attr('dy', '-1.25em')
+    .style('text-anchor', hoverTextAnchor)
+    .style("opacity", 1)
+    .text("Total: " + d3.format('.5s')(total_y))
+    .style("fill", function(d) { return "black"; })
+    .style("stroke", "white")
+    .style("stroke-width", "3px")
+    .style("paint-order", "stroke fill");
+
+
+    // draw line
     
-    return "test";})
-  .style("top", function(d) { if(d3.event.pageY) {prevY = d3.event.pageY;} return (prevY -  d3.select('.tooltipG').node().getBoundingClientRect().height) + "px"; })
-  .style("left", function(d) { if(d3.event.pageX) {prevX = d3.event.pageX;} return (m[0] + time_graph_offset + domRect.left) + "px"; })
+    g.selectAll('.hoverLine')
+    .attr('x1', x(dataElement.data.timestamp))
+    .attr('y1', 0)
+    .attr('x2', x(dataElement.data.timestamp))
+    .attr('y2', currentlyStacked ? height / 2 : height)
+    .attr('stroke', '#1f1f1f')
+    .attr('fill', '#1f1f1f');
+
   }
   var mouseleaveGraph = function(d) {
-    TooltipGraph
-      .style("opacity", 0)
+    g.selectAll('.clone').remove();
+    //g.selectAll('.hoverText').style("opacity", 0);
+    g.selectAll('.hoverLine').style("opacity", 0);
+    g.selectAll('.hoverPoint').style("opacity", 0);
   }
 
 
@@ -301,17 +387,14 @@ d3.csv("data/data1.csv").then(function(data){
     // Pull module names out of the headers
     keys = data.columns.slice(1);
 
-    
-    coloring = d3.scaleOrdinal()
-    .domain(keys)
-    .range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf'])
+
 
     // Clean the data
     data.forEach(function(d) {
         keys.forEach(function(k) {
             d[k] = +d[k];
         });
-        d["timestamp"] = +d["timestamp"];
+        d["Timestamp"] = +d["Timestamp"];
     });
 
     totals = JSON.parse(JSON.stringify(data[data.length - 1]));
@@ -336,6 +419,9 @@ d3.csv("data/data1.csv").then(function(data){
     // Can be used to draw out the top X keys
     completeKeySet = keys.slice();
     
+    coloring = d3.scaleOrdinal()
+    .domain(keys)
+    .range(['#4E79A7','#F28E2B','#E15759','#76B7B2','#59A14E','#EDC949','#AF7AA1','#FF9DA7', '#9C755F', '#BAB0AC'])
 
     s_data = data;
     // Run the update in the first frame.
@@ -365,7 +451,7 @@ data.columns = JSON.parse(JSON.stringify(s_data.columns));
 if(cropDataSet)
 {
     keys = [];
-    data.columns = ["timestamp"];
+    data.columns = ["Timestamp"];
     for(let i = 0; i < cropDataSetByTop; ++i)
     {
         data.columns.push(completeKeySet[i]);
@@ -375,7 +461,7 @@ if(cropDataSet)
 else
 {
     keys = completeKeySet.slice();
-    data.columns = ["timestamp"];
+    data.columns = ["Timestamp"];
     data.columns.push.apply(data.columns, completeKeySet);
     //data.columns = data.columns.append(completeKeySet);
 }
@@ -467,8 +553,17 @@ var root = d3.hierarchy(totalsTree).sum(function(d){ return d.value}).sort(funct
     return b.value - a.value;
 })
 
+yIndividualHeight = height * (1 / keys.length);
 
+yIndividualHeightTopMargin = yIndividualHeight * 0.2;
 
+yIndividualHeightInside = yIndividualHeight - yIndividualHeightTopMargin;
+
+seperatedStacks.forEach(function(ss) {
+    y_chart_offsets[ss.key] = ss.offset * yIndividualHeight;
+});
+
+//var transitionY = ( (currentlyStacked ? 0 : d.offset) * yIndividualHeight) + (currentlyStacked ? 0 : yIndividualHeightTopMargin);
 
 d3.treemap()
 .round(true)
@@ -585,6 +680,15 @@ yLabel = g.append("text")
         .on("mouseover", mouseoverGraph)
         .on("mousemove", mousemoveGraph)
         .on("mouseleave", mouseleaveGraph);
+
+
+        g.append('line').classed('hoverLine', true).attr("transform", function(d, i) {
+            return "translate( " + time_graph_offset + ", 0)"}).style("opacity", 0);
+
+        g.append("text").classed('hoverText', true).attr("transform", function(d, i) {
+            return "translate( " + time_graph_offset + ", 0)"}).style("opacity", 0);
+
+
 }
 
 function isTransitioning(selection) {
@@ -661,4 +765,3 @@ function changeStacking(do_stacking) {
 
 //d3.select("#enableTopValues").on("input", enableTopValues);
 
-//g.on('mousemove', mouseTooltipGraph)
