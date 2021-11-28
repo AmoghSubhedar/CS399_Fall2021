@@ -15,8 +15,8 @@ be animated/updated etc. Typically, you will put things here that are not depend
 var margins = { left:0, right:0, top:50, bottom:150};
 
 //define chart sizes
-var width = 1200 - margins.left - margins.right;
-var height = 800 - margins.top - margins.bottom;
+var width = 1700 - margins.left - margins.right;
+var height = 750 - margins.top - margins.bottom;
 
 var width_time = width * 0.70;
 
@@ -45,6 +45,9 @@ var completeKeySet;
 
 var s_data;
 var totals;
+
+var x_min = 0;
+var x_max = 1;
 
 var y_chart_offsets = [];
 
@@ -187,7 +190,7 @@ function triggerTransition(time_duration){
       .duration(time_duration)
       //.style("fill", function(d) { console.log(d.key) ; return color(d.key); })
       .attr("d", d3.area()
-        .x(function(d, i) { return x(d.data.timestamp); })
+        .x(function(d, i) { return x(d.data.Timestamp); })
         .y0(function(d) { return y(d[0]); })
         .y1(function(d) { return y(d[1]); })
     ).attr("transform", function(d, i) {
@@ -218,7 +221,7 @@ function triggerTransition(time_duration){
 
   var mousemove = function(d) {
    Tooltip
-  .html(d.data.name + ":<br>Samples: " + d.value + "<br>" + d3.format(".2%")(d.value / totalSamples))
+  .html(d.data.key + ":<br>Samples: " + d.value + "<br>" + d3.format(".2%")(d.value / totalSamples))
   .style("top", function(d) { if(d3.event.pageY) {prevY = d3.event.pageY;} return (prevY -  d3.select('.tooltip').node().getBoundingClientRect().height) + "px"; })
   .style("left", function(d) { if(d3.event.pageX) {prevX = d3.event.pageX;} return prevX + "px"; })
   }
@@ -251,17 +254,11 @@ function triggerTransition(time_duration){
     var xValue = x.invert(correctedXPos);
 
     const bisectorData = d3.bisector(function(d) {
-        return d.data.timestamp;
+        return d.data.Timestamp;
       }).left;
     const xIndex = bisectorData(d, xValue, 1);
 
     const dataElement = d[xIndex]; 
-    //const mouseYValue = data[xIndex].population;
-
-      // INDEX IS MAYBE RIGHT
-      // CONT USING https://observablehq.com/@elishaterada/simple-area-chart-with-tooltip
-      // TO IMPLEMENT A TOOLTIP
-      // THEN FIX THE COLORS AND SHIP IT
 
 
       
@@ -310,7 +307,7 @@ function triggerTransition(time_duration){
     
 
     original.clone(true).classed('clone', true)
-      .attr('x', x(dataElement.data.timestamp))
+      .attr('x', x(dataElement.data.Timestamp))
       .attr('y', y_top_pos)
       .attr('dx', hoverTextX)
       .attr('dy', '-1.25em')
@@ -332,7 +329,7 @@ function triggerTransition(time_duration){
     var hoverTextAnchor = isLessThanHalf ? 'end' : 'start';
 
     original.clone(true).classed('clone', true)
-    .attr('x', x(dataElement.data.timestamp))
+    .attr('x', x(dataElement.data.Timestamp))
     .attr('y', y_top_pos)
     .attr('dx', hoverTextX)
     .attr('dy', '-1.25em')
@@ -348,9 +345,9 @@ function triggerTransition(time_duration){
     // draw line
     
     g.selectAll('.hoverLine')
-    .attr('x1', x(dataElement.data.timestamp))
+    .attr('x1', x(dataElement.data.Timestamp))
     .attr('y1', 0)
-    .attr('x2', x(dataElement.data.timestamp))
+    .attr('x2', x(dataElement.data.Timestamp))
     .attr('y2', currentlyStacked ? height / 2 : height)
     .attr('stroke', '#1f1f1f')
     .attr('fill', '#1f1f1f');
@@ -374,7 +371,7 @@ var prevY = 0;
 
 //d3.csv("data/revenues.csv").then(function(data){
 //d3.tsv("data/revenues.tsv").then(function(data){
-d3.csv("data/data1.csv").then(function(data){
+d3.csv("data/ProfileReport.csv").then(function(data){
      console.log(data);
 
      
@@ -418,7 +415,7 @@ d3.csv("data/data1.csv").then(function(data){
 
     // Can be used to draw out the top X keys
     completeKeySet = keys.slice();
-    
+
     coloring = d3.scaleOrdinal()
     .domain(keys)
     .range(['#4E79A7','#F28E2B','#E15759','#76B7B2','#59A14E','#EDC949','#AF7AA1','#FF9DA7', '#9C755F', '#BAB0AC'])
@@ -427,6 +424,10 @@ d3.csv("data/data1.csv").then(function(data){
     // Run the update in the first frame.
     update();
 });
+
+
+
+
 
 function update() {
 
@@ -440,13 +441,11 @@ function update() {
 
 
 
-    // Tooltips for graphs
-
-
-
 // Make a fresh copy of the data for manipulation
 var data = JSON.parse(JSON.stringify(s_data));
 data.columns = JSON.parse(JSON.stringify(s_data.columns));
+
+
 
 if(cropDataSet)
 {
@@ -473,10 +472,24 @@ for (let i = 0; i < keys.length; i++) {
     data["columns"][1 + i] = keys[i];
 }
 
+// Cut ends off data
+if(x_min != 0 || x_max != 1)
+{
+    data = data.splice(data.length * x_min, (data.length) - (data.length * x_min))
+}
+
 
 // Process the data into increments
 // Stores the number of new readings each increment
 var incrementData = data;
+
+var initialOffset = JSON.parse(JSON.stringify(data[0]));
+
+for (let i = 0; i < incrementData.length; i++) {
+    keys.forEach(function(k) {
+        incrementData[i][k] = incrementData[i][k] - initialOffset[k];
+    });
+}
 
 for (let i = data.length - 1; i > 0; i--) {
     keys.forEach(function(k) {
@@ -538,6 +551,44 @@ keys.forEach(function(k) {
     totalSamples += totals[k];
 });
 
+var pie_totals = [];
+
+keys.forEach(function(k) {
+    pie_totals[k] = totals[k];
+});
+
+
+var pie = d3.pie()
+  .value(function(d) {return d.value; })
+var pie_data = pie(d3.entries(pie_totals))
+
+g
+  .selectAll('pieChart')
+  .data(pie_data)
+  .enter()
+  .append('path')
+  .attr('d', d3.arc()
+    .innerRadius(0)
+    .outerRadius(width_total / 2)
+  )
+  .attr('fill', function(d){ return(coloring(d.data.key)) })
+  .style("opacity", 0.7)
+  .attr("transform", "translate(" + ( width_total / 2 + (width * 0.05)) + "," + ((width_total / 2) + (width * 0.025)) + ")")
+  .on("mouseover", mouseover)
+  .on("mousemove", mousemove)
+  .on("mouseleave", mouseleave);
+
+
+  yIndividualHeight = height * (1 / keys.length);
+
+yIndividualHeightTopMargin = yIndividualHeight * 0.2;
+
+yIndividualHeightInside = yIndividualHeight - yIndividualHeightTopMargin;
+
+seperatedStacks.forEach(function(ss) {
+    y_chart_offsets[ss.key] = ss.offset * yIndividualHeight;
+});
+/*
 var totalsTree = {};
 totalsTree.children = new Array();
 
@@ -559,11 +610,7 @@ yIndividualHeightTopMargin = yIndividualHeight * 0.2;
 
 yIndividualHeightInside = yIndividualHeight - yIndividualHeightTopMargin;
 
-seperatedStacks.forEach(function(ss) {
-    y_chart_offsets[ss.key] = ss.offset * yIndividualHeight;
-});
 
-//var transitionY = ( (currentlyStacked ? 0 : d.offset) * yIndividualHeight) + (currentlyStacked ? 0 : yIndividualHeightTopMargin);
 
 d3.treemap()
 .round(true)
@@ -604,7 +651,7 @@ g
   .attr("font-size", "15px")
   .attr("fill", "white")
 .style("pointer-events", "none")
-
+*/
 
 // X Label
 xLabel = g.append("text")
@@ -616,12 +663,37 @@ xLabel = g.append("text")
 
 // Y Label
 yLabel = g.append("text")
-    .attr("y", -60 + time_graph_offset)
+    .attr("y", -30 + time_graph_offset)
     .attr("x", -(height / 4))
     .attr("font-size", "20px")
     .attr("text-anchor", "middle")
     .attr("transform", "rotate(-90)")
     .text("Samples");
+
+
+    // Legend
+    g.selectAll("LegendCircles")
+  .data(keys)
+  .enter()
+  .append("circle")
+    .attr("cx", 10)
+    .attr("cy", function(d,i){ return ((keys.length - 1) * 25) - i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+    .attr("r", 7)
+    .style("fill", function(d){ return coloring(d)})
+    .attr("transform", "translate(" + (width * 0.05) + "," + ((width_total /2) +  ((width_total / 2) + (width * 0.025)) + 30) + ")");
+
+    // Legend text
+   g.selectAll("LegendText")
+  .data(keys)
+  .enter()
+  .append("text")
+    .attr("x", 30)
+    .attr("y", function(d,i){ return ((keys.length - 1) * 25) - i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+    .style("fill", function(d){ return coloring(d)})
+    .text(function(d){ return d})
+    .attr("text-anchor", "left")
+    .style("alignment-baseline", "middle")
+    .attr("transform", "translate(" + (width * 0.05) + "," + ((width_total /2) +  ((width_total / 2) + (width * 0.025)) + 30) + ")");;
 
     //var ymax = 0;
     if(showingStackedArea)
@@ -655,7 +727,8 @@ yLabel = g.append("text")
     //var value = showingStackedArea ? d3.max(data, function(d) { return d[value] }) : "profit";
 
     //revisit scales and axes
-    x.domain(d3.extent(stackedData[0], function(d) { return d.data.timestamp; }));
+    var x_max_val = d3.max(stackedData[0], function(d) { return d.data.Timestamp; });
+    x.domain([x_min * x_max_val, x_max * x_max_val]);
     y.domain([0, maxStackedY * 1.1]);
 
     // X Axis
@@ -671,8 +744,9 @@ yLabel = g.append("text")
     .enter()
     .append("path")
       .style("fill", function(d) { console.log(d.key) ; return coloring(d.key); })
+      .style("opacity", 0.8)
       .attr("d", d3.area()
-        .x(function(d, i) { return x(d.data.timestamp); })
+        .x(function(d, i) { return x(d.data.Timestamp); })
         .y0(function(d) { return y(d[0]); })
         .y1(function(d) { return y(d[1]); })
     ).attr("transform", function(d, i) {
@@ -765,3 +839,50 @@ function changeStacking(do_stacking) {
 
 //d3.select("#enableTopValues").on("input", enableTopValues);
 
+
+// Dual range slider
+// from https://stackoverflow.com/questions/4753946/html5-slider-with-two-inputs-possible
+  
+  window.onload = function(){
+    // Initialize Sliders
+    var sliderSections = document.getElementsByClassName("range-slider");
+        for( var x = 0; x < sliderSections.length; x++ ){
+          var sliders = sliderSections[x].getElementsByTagName("input");
+          for( var y = 0; y < sliders.length; y++ ){
+            if( sliders[y].type ==="range" ){
+              sliders[y].oninput = getVals;
+              // Manually trigger event first time to display values
+              sliders[y].oninput();
+            }
+          }
+        }
+  }
+
+
+  function sliderChange(){
+    //var parent = this.parentNode;
+    //var slides = parent.getElementById("sliderMax");
+    var slide1 = parseFloat(  document.getElementById("sliderMin").value );
+    var slide2 = parseFloat(  document.getElementById("sliderMax").value );
+
+    var test = document.getElementById("sliderMax").step;
+
+    var s1_clamped =  Math.min(slide2 - parseFloat(document.getElementById("sliderMin").step), slide1);
+    var s2_clamped =  Math.max(slide1 + parseFloat(document.getElementById("sliderMax").step), slide2);
+
+     if(x_min != s1_clamped || x_max != s2_clamped)
+     {
+        x_min = s1_clamped;
+        x_max = s2_clamped;
+
+        if(s1_clamped != slide1)
+            document.getElementById("sliderMin").value = s1_clamped;
+
+        if(s2_clamped != slide2)
+            document.getElementById("sliderMax").value = s2_clamped;
+
+        d3.selectAll("svg > g > *").remove();
+        update(s_data);
+        triggerTransition(0);
+     }
+  }
