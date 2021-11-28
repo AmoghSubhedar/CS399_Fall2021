@@ -1,6 +1,4 @@
-// oh god oh man i dont know javascript/css
-// this is the messiest code ive ever written
-// im so sorry
+var filename = "data/ProfileReport.csv";
 
 //============================GLOBALS============================
 /* you should define anything up here that stays static throughout your visualization. It is the design of your
@@ -15,7 +13,7 @@ be animated/updated etc. Typically, you will put things here that are not depend
 var margins = { left:0, right:0, top:50, bottom:150};
 
 //define chart sizes
-var width = 1700 - margins.left - margins.right;
+var width = 1800 - margins.left - margins.right;
 var height = 750 - margins.top - margins.bottom;
 
 var width_time = width * 0.70;
@@ -371,7 +369,7 @@ var prevY = 0;
 
 //d3.csv("data/revenues.csv").then(function(data){
 //d3.tsv("data/revenues.tsv").then(function(data){
-d3.csv("data/ProfileReport.csv").then(function(data){
+d3.csv(filename).then(function(data){
      console.log(data);
 
      
