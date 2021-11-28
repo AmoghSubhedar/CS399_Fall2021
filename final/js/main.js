@@ -657,7 +657,8 @@ xLabel = g.append("text")
     .attr("x", width_time / 2 + time_graph_offset)
     .attr("font-size", "20px")
     .attr("text-anchor", "middle")
-    .text("Time");
+    .attr("font-weight", 300)
+    .text("Time (seconds)");
 
 // Y Label
 yLabel = g.append("text")
@@ -666,6 +667,7 @@ yLabel = g.append("text")
     .attr("font-size", "20px")
     .attr("text-anchor", "middle")
     .attr("transform", "rotate(-90)")
+    .attr("font-weight", 300)
     .text("Samples");
 
 
