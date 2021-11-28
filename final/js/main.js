@@ -570,7 +570,7 @@ g
     .outerRadius(width_total / 2)
   )
   .attr('fill', function(d){ return(coloring(d.data.key)) })
-  .style("opacity", 0.7)
+  .style("opacity", 0.8)
   .attr("transform", "translate(" + ( width_total / 2 + (width * 0.05)) + "," + ((width_total / 2) + (width * 0.025)) + ")")
   .on("mouseover", mouseover)
   .on("mousemove", mousemove)
@@ -865,8 +865,8 @@ function changeStacking(do_stacking) {
 
     var test = document.getElementById("sliderMax").step;
 
-    var s1_clamped =  Math.min(slide2 - parseFloat(document.getElementById("sliderMin").step), slide1);
-    var s2_clamped =  Math.max(slide1 + parseFloat(document.getElementById("sliderMax").step), slide2);
+    var s1_clamped =  Math.min(slide2 - (2 * parseFloat(document.getElementById("sliderMin").step)), slide1);
+    var s2_clamped =  Math.max(slide1 + (2 * parseFloat(document.getElementById("sliderMax").step)), slide2);
 
      if(x_min != s1_clamped || x_max != s2_clamped)
      {
